@@ -14,12 +14,14 @@ SCREENSHOT_SENDER = "robot@friend.dk"
 # Constant/Credential names
 ERROR_EMAIL = "Error Email"
 
+# Miralix
+SSK = "Miralix SSK"
 
 # Queue specific configs
 # ----------------------
 
 # The name of the job queue (if any)
-QUEUE_NAME = None
+QUEUE_NAME = "Miralix Nedhentning"
 
 # The limit on how many queue elements to process
 MAX_TASK_COUNT = 100

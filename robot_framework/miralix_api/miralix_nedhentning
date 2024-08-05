@@ -1,0 +1,69 @@
+import requests
+import json
+import os
+
+from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
+
+from robot_framework import config
+
+
+# Base URL for the Miralix API
+base_url = "https://webrequest-aarhus.miralix.online/mot/12986"
+
+
+def process(orchestrator_connection: OrchestratorConnection):
+    """Setup and run the process
+
+    Args:
+        orchestrator_connection: _description_. Defaults to OrchestratorConnection.
+    """
+
+    headers = {
+        "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
+    }
+    target_queues = json.loads(orchestrator_connection.process_arguments)["target_queues"]
+    queues = get_data("queues", headers=headers)
+    for queue in target_queues:
+        found_queue = get_queue_id(queue, queues)
+        if found_queue:
+            recordings = get_data(f"queues/{found_queue}/calls/recordings", headers=headers)
+            download_files(recordings, "file_download", headers=headers)
+
+
+# Function to get data from the API
+def get_data(endpoint, params=None, headers=None):
+    response = requests.get(f"{base_url}/{endpoint}", params=params, headers=headers)
+    response.raise_for_status()  # Raise an error for bad status codes
+    return response.json()
+
+
+# Function to find queueCallId in calls objects
+def find_queue_call_ids(calls):
+    queue_call_ids = [call['queueCallId'] for call in calls if 'queueCallId' in call]
+    return queue_call_ids
+
+
+# Function to download files based on queueCallId
+def download_files(recordings, destination, headers):
+    for recording in recordings:
+        file_id = recording["QueueCallId"]
+        file_data = requests.get(f"{base_url}/queues/calls/recordings/{file_id}", headers=headers).content
+        with open(f"{destination}/{recording["RecordingFileName"]}", mode="wb") as file:
+            file.write(file_data)
+        # Process the file data as needed
+        print(f"Downloaded files for call ID: {file_id}")
+
+
+def get_queue_id(queue_name: str, queues: object):
+    queue_name = queue_name.strip()
+    for queue in queues:
+        if queue["Name"] == queue_name:
+            return queue["Id"]
+    return None
+
+
+if __name__ == "__main__":
+    conn_string = os.getenv("OpenOrchestratorConnString")
+    crypto_key = os.getenv("OpenOrchestratorKey")
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","Opkrævningen P-Gap Boliglån tast 2"]}')
+    process(oc)
