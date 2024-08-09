@@ -16,6 +16,7 @@ ERROR_EMAIL = "Error Email"
 
 # Miralix
 SSK = "Miralix SSK"
+DOWNLOAD_LOCATION = "c:/tmp"
 
 # Queue specific configs
 # ----------------------

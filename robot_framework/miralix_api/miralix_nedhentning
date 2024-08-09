@@ -15,46 +15,94 @@ def process(orchestrator_connection: OrchestratorConnection):
     """Setup and run the process
 
     Args:
-        orchestrator_connection: _description_. Defaults to OrchestratorConnection.
+        orchestrator_connection: Connection object to OpenOrchestrator
     """
-
     headers = {
         "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
     }
     target_queues = json.loads(orchestrator_connection.process_arguments)["target_queues"]
-    queues = get_data("queues", headers=headers)
+    api_queues = get_data("queues", headers=headers)
+
+    params = {
+        "fromQueueCallId": get_last_download_id()
+    }
+
     for queue in target_queues:
-        found_queue = get_queue_id(queue, queues)
+        found_queue = get_queue_id(queue, api_queues)
         if found_queue:
-            recordings = get_data(f"queues/{found_queue}/calls/recordings", headers=headers)
-            download_files(recordings, "file_download", headers=headers)
+            recordings = get_data(f"queues/{found_queue}/calls/recordings", headers=headers, params=params)
+            download_files(recordings, config.DOWNLOAD_LOCATION, headers=headers)
 
 
-# Function to get data from the API
-def get_data(endpoint, params=None, headers=None):
+def get_data(endpoint, headers, params=None, ) -> json:
+    """Contact Miralix API endpoint to receive JSON data.
+
+    Args:
+        endpoint: URL after our Miralix ID for endpoint, eg. 'queues/'
+        params: Parameters for get request
+        headers: Header for get request. Requires an SSK from Miralix
+
+    Returns:
+        JSON formatted data.
+    """
     response = requests.get(f"{base_url}/{endpoint}", params=params, headers=headers)
     response.raise_for_status()  # Raise an error for bad status codes
     return response.json()
 
 
-# Function to find queueCallId in calls objects
-def find_queue_call_ids(calls):
-    queue_call_ids = [call['queueCallId'] for call in calls if 'queueCallId' in call]
-    return queue_call_ids
-
-
-# Function to download files based on queueCallId
 def download_files(recordings, destination, headers):
+    """Download files for list of recordings.
+
+    Args:
+        recordings: List of json objects representing recordings in the API.
+        destination: The local folder to store the files in.
+        headers: Headers for the HTTP request.
+    """
     for recording in recordings:
-        file_id = recording["QueueCallId"]
-        file_data = requests.get(f"{base_url}/queues/calls/recordings/{file_id}", headers=headers).content
-        with open(f"{destination}/{recording["RecordingFileName"]}", mode="wb") as file:
+        file_data = requests.get(f"{base_url}/queues/calls/recordings/{recording["QueueCallId"]}", headers=headers).content
+        file_name = get_filename(recording)
+        with open(f"{destination}/{file_name}", mode="wb") as file:
             file.write(file_data)
-        # Process the file data as needed
-        print(f"Downloaded files for call ID: {file_id}")
 
 
-def get_queue_id(queue_name: str, queues: object):
+def get_filename(recording) -> str:
+    """Generate a filename from a recording.
+
+    Args:
+        recording: Recording object from json.
+
+    Returns:
+        An mp3 filename in the format 'queue_time-started_agent_file-id.mp3'.
+    """
+    queue = recording["QueueName"].replace(' ', '')[8:]
+    time_started = recording["ConversationStartedUtc"][:19].replace(":", "-")
+    agent = recording["AgentName"].replace(' ', '')
+    file_id = recording["QueueCallId"]
+    return f"{queue}_{time_started}_{agent}_{file_id}.mp3"
+
+
+def get_fileid_from_filename(filename: str) -> str:
+    """Extract fileid from a filename
+
+    Args:
+        filename: A string filename in the format 'queue_time-started_agent_file-id.mp3'
+
+    Returns:
+        A fileid
+    """
+    return filename.split("_")[-1].split(".")[0]
+
+
+def get_queue_id(queue_name: str, queues: object) -> str:
+    """Find the ID of the queue with 'queue_name' in the 'queue' json object.
+
+    Args:
+        queue_name: The name of the queue we are looking for.
+        queues: A JSON with a collection of queues.
+
+    Returns:
+        Return the ID of the queue.
+    """
     queue_name = queue_name.strip()
     for queue in queues:
         if queue["Name"] == queue_name:
@@ -62,8 +110,24 @@ def get_queue_id(queue_name: str, queues: object):
     return None
 
 
+def get_last_download_id() -> int:
+    """Get the ID of the latest call recording downloaded.
+
+    Returns:
+        A call ID as an int
+    """
+    folder_path = config.DOWNLOAD_LOCATION
+    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    highest_id = 0
+    for file in files:
+        file_id = int(get_fileid_from_filename(file))
+        if highest_id < file_id:
+            highest_id = file_id
+    return highest_id
+
+
 if __name__ == "__main__":
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","Opkrævningen P-Gap Boliglån tast 2"]}')
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
     process(oc)
