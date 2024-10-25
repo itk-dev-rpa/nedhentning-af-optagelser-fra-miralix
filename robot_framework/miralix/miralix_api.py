@@ -1,3 +1,5 @@
+"""API wrappers for interacting with Miralix"""
+
 import requests
 import json
 import os
@@ -7,12 +9,8 @@ from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConn
 from robot_framework import config
 
 
-# Base URL for the Miralix API
-base_url = "https://webrequest-aarhus.miralix.online/mot/12986"
-
-
-def process(orchestrator_connection: OrchestratorConnection):
-    """Setup and run the process
+def download_from_queues(orchestrator_connection: OrchestratorConnection):
+    """Download files from the queues specified in the process arguments.
 
     Args:
         orchestrator_connection: Connection object to OpenOrchestrator
@@ -20,21 +18,22 @@ def process(orchestrator_connection: OrchestratorConnection):
     headers = {
         "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
     }
-    target_queues = json.loads(orchestrator_connection.process_arguments)["target_queues"]
-    api_queues = get_data("queues", headers=headers)
+
+    queue_names = json.loads(orchestrator_connection.process_arguments)["target_queues"]
+    target_queues = get_miralix_data("queues", headers=headers)
 
     params = {
         "fromQueueCallId": get_last_download_id()
     }
 
-    for queue in target_queues:
-        found_queue = get_queue_id(queue, api_queues)
-        if found_queue:
-            recordings = get_data(f"queues/{found_queue}/calls/recordings", headers=headers, params=params)
-            download_files(recordings, config.DOWNLOAD_LOCATION, headers=headers)
+    for queue in queue_names:
+        queue_id = get_queue_id(queue, target_queues)
+        if queue_id:
+            recordings = get_miralix_data(f"queues/{queue_id}/calls/recordings", headers=headers, params=params)
+            return download_files(recordings, config.DOWNLOAD_LOCATION, headers=headers)
 
 
-def get_data(endpoint, headers, params=None, ) -> json:
+def get_miralix_data(endpoint, headers, params=None, ) -> json:
     """Contact Miralix API endpoint to receive JSON data.
 
     Args:
@@ -45,24 +44,30 @@ def get_data(endpoint, headers, params=None, ) -> json:
     Returns:
         JSON formatted data.
     """
-    response = requests.get(f"{base_url}/{endpoint}", params=params, headers=headers)
+    response = requests.get(f"{config.MIRALIX_BASE_URL}/{endpoint}", params=params, headers=headers)
     response.raise_for_status()  # Raise an error for bad status codes
     return response.json()
 
 
-def download_files(recordings, destination, headers):
+def download_files(recordings, destination, headers) -> list[str]:
     """Download files for list of recordings.
 
     Args:
         recordings: List of json objects representing recordings in the API.
         destination: The local folder to store the files in.
         headers: Headers for the HTTP request.
+
+    Returns:
+        List of path of files that have been downloaded.
     """
+    files = []
     for recording in recordings:
-        file_data = requests.get(f"{base_url}/queues/calls/recordings/{recording["QueueCallId"]}", headers=headers).content
-        file_name = get_filename(recording)
-        with open(f"{destination}/{file_name}", mode="wb") as file:
+        file_data = requests.get(f"{config.MIRALIX_BASE_URL}/queues/calls/recordings/{recording["QueueCallId"]}", headers=headers).content
+        file_name = f"{destination}/{get_filename(recording)}"
+        with open(file_name, mode="wb") as file:
             file.write(file_data)
+        files.append(file_name)
+    return files
 
 
 def get_filename(recording) -> str:
@@ -79,18 +84,6 @@ def get_filename(recording) -> str:
     agent = recording["AgentName"].replace(' ', '')
     file_id = recording["QueueCallId"]
     return f"{queue}_{time_started}_{agent}_{file_id}.mp3"
-
-
-def get_fileid_from_filename(filename: str) -> str:
-    """Extract fileid from a filename
-
-    Args:
-        filename: A string filename in the format 'queue_time-started_agent_file-id.mp3'
-
-    Returns:
-        A fileid
-    """
-    return filename.split("_")[-1].split(".")[0]
 
 
 def get_queue_id(queue_name: str, queues: object) -> str:
@@ -114,7 +107,7 @@ def get_last_download_id() -> int:
     """Get the ID of the latest call recording downloaded.
 
     Returns:
-        A call ID as an int
+        A call ID as an int.
     """
     folder_path = config.DOWNLOAD_LOCATION
     files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
@@ -126,8 +119,20 @@ def get_last_download_id() -> int:
     return highest_id
 
 
+def get_fileid_from_filename(filename: str) -> str:
+    """Extract fileid from a filename.
+
+    Args:
+        filename: A string filename in the format 'queue_time-started_agent_file-id.mp3'
+
+    Returns:
+        A fileid.
+    """
+    return filename.split("_")[-1].split(".")[0]
+
+
 if __name__ == "__main__":
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
     oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
-    process(oc)
+    download_from_queues(oc)

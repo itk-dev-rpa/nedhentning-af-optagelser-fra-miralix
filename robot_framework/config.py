@@ -15,8 +15,14 @@ SCREENSHOT_SENDER = "robot@friend.dk"
 ERROR_EMAIL = "Error Email"
 
 # Miralix
-SSK = "Miralix SSK"
-DOWNLOAD_LOCATION = "c:/tmp"
+SSK = "Miralix Shared Key"
+MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
+DOWNLOAD_LOCATION = "downloads"
+
+# GetOrganized
+GO_API = "https://ad.go.aarhuskommune.dk"
+GO_CREDENTIALS = "GetOrganized Login"
+GO_CASE_ID = "EMN-2024-033020"
 
 # Queue specific configs
 # ----------------------

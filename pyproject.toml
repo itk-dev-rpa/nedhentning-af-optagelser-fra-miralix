@@ -17,8 +17,9 @@ classifiers = [
 ]
 dependencies = [
     "OpenOrchestrator == 1.*",
-    "Pillow == 9.5.0",
-    "uiautomation == 2.0.*"
+    "Pillow == 9.*",
+    "uiautomation == 2.*",
+    "requests_ntlm == 1.*"
 ]
 
 [project.optional-dependencies]
