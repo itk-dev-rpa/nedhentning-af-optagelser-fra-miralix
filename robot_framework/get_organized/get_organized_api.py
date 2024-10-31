@@ -2,7 +2,6 @@
 
 from requests import Session
 import json
-import os
 from requests_ntlm import HttpNtlmAuth
 
 
@@ -64,29 +63,31 @@ def close_case(APIURL, session, case_number) -> tuple[str, Session]:
     return response.text, session
 
 
-def upload_document(APIURL: str, session: Session, filepath: str, case: str) -> tuple[str, Session]:
-    """Upload a document to GetOrganized.
+def upload_document(apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None):
+    """Upload a document to Get Organized.
 
     Args:
-        APIURL: Url of the GetOrganized API.
-        session: Session object for login.
-        filepath: Filepath of the file to upload.
-        case: WWhich case to add the file to.
+        apiurl: Base url for API.
+        session: Session token for request.
+        file: Bytearray of file to upload.
+        case: Case name already present in GO.
+        filename: Name of file when saved in GO.
+        agent_name: Agent name, used for creating a folder in GO. Defaults to None.
 
     Returns:
-        Return the response and session objects
+        Return response text and session token.
     """
-    url = APIURL + "/_goapi/Documents/AddToCase"
+    url = apiurl + "/_goapi/Documents/AddToCase"
     payload = {
-        "Bytes": file_to_bytes(filepath),
+        "Bytes": file,
         "CaseId": case,
-        "SiteUrl": f"{APIURL}/cases/EMN/{case}",
+        "SiteUrl": f"{apiurl}/cases/EMN/{case}",
         "ListName": "Dokumenter",
-        "FolderPath": None,
-        "FileName": os.path.basename(filepath),
+        "FolderPath": agent_name,
+        "FileName": filename,
         "Metadata": "<z:row xmlns:z='#RowsetSchema' ows_CustomProperty='Another prop value' />",
         "Overwrite": False
-        }
+    }
     response = session.post(url, data=json.dumps(payload), timeout=600)
     return response.text, session
 
@@ -105,12 +106,12 @@ def delete_document(APIURL, session, document_id) -> tuple[str, Session]:
     url = APIURL + "/_goapi/Documents/ByDocumentId"
     payload = {
         "DocId": document_id
-        }
+    }
     response = session.delete(url, data=json.dumps(payload), timeout=600)
     return response.text, session
 
 
-def journalize_documents(APIURL, DocID, session) -> tuple[str, Session]:
+def journalize_document(APIURL, DocID, session) -> tuple[str, Session]:
     url = APIURL + "/_goapi/Documents/Finalize/ByDocumentId"
     payload = {"DocID": DocID}
     response = session.post(url, data=payload, timeout=600)
@@ -119,9 +120,10 @@ def journalize_documents(APIURL, DocID, session) -> tuple[str, Session]:
 
 def unjournalize_documents(APIURL, DocIDS, session) -> tuple[str, Session]:
     url = APIURL + "/_goapi/Documents/UnmarkFinalizedByDocumentId"
-    payload = {"DocIDs": DocIDS,
-               "OnlyUnfinalize": True
-               }
+    payload = {
+        "DocIDs": DocIDS,
+        "OnlyUnfinalize": True
+    }
     response = session.post(url, data=payload)
     return response.text, session
 
@@ -134,12 +136,10 @@ def log_to_getorganized(APIURL: str, session: Session, message: str) -> tuple[st
         "OperationName": "OperationNameFromGoApi",
         "Message": message,
         "LogLevel": "1"
-            }
+    }
     response = session.post(url, json.dumps(data))
     return response.text, session
 
 
-def file_to_bytes(file_path) -> list[int]:
-    with open(file_path, 'rb') as file:
-        file_bytes = file.read()
-    return list(file_bytes)
+if __name__ == "__main__":
+    print("main")

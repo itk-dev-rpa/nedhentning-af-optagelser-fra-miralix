@@ -9,11 +9,12 @@ from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConn
 from robot_framework import config
 
 
-def download_from_queues(orchestrator_connection: OrchestratorConnection):
+def recordings_for_process(orchestrator_connection: OrchestratorConnection, from_queue_call_id: int = 0) -> list[str]:
     """Download files from the queues specified in the process arguments.
 
     Args:
-        orchestrator_connection: Connection object to OpenOrchestrator
+        orchestrator_connection: Connection object to OpenOrchestrator.
+        from_queue_call_id: Call ID to start download from. Defaults to 0.
     """
     headers = {
         "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
@@ -23,14 +24,17 @@ def download_from_queues(orchestrator_connection: OrchestratorConnection):
     target_queues = get_miralix_data("queues", headers=headers)
 
     params = {
-        "fromQueueCallId": get_last_download_id()
+        "fromQueueCallId": from_queue_call_id
     }
 
+    recordings = []
     for queue in queue_names:
         queue_id = get_queue_id(queue, target_queues)
         if queue_id:
-            recordings = get_miralix_data(f"queues/{queue_id}/calls/recordings", headers=headers, params=params)
-            return download_files(recordings, config.DOWNLOAD_LOCATION, headers=headers)
+            calls = get_miralix_data(f"queues/{queue_id}/calls/recordings", headers=headers, params=params)
+            if calls:
+                recordings.extend(calls)
+    return recordings
 
 
 def get_miralix_data(endpoint, headers, params=None, ) -> json:
@@ -44,30 +48,25 @@ def get_miralix_data(endpoint, headers, params=None, ) -> json:
     Returns:
         JSON formatted data.
     """
-    response = requests.get(f"{config.MIRALIX_BASE_URL}/{endpoint}", params=params, headers=headers)
+    response = requests.get(f"{config.MIRALIX_BASE_URL}/{endpoint}", params=params, headers=headers, timeout=600)
     response.raise_for_status()  # Raise an error for bad status codes
     return response.json()
 
 
-def download_files(recordings, destination, headers) -> list[str]:
-    """Download files for list of recordings.
+def download_file(call_id, password):
+    """Download a specified file from Miralix.
 
     Args:
-        recordings: List of json objects representing recordings in the API.
-        destination: The local folder to store the files in.
-        headers: Headers for the HTTP request.
+        call_id: ID of the call to download
+        password: password for Miralix
 
     Returns:
-        List of path of files that have been downloaded.
+        The file content downloaded.
     """
-    files = []
-    for recording in recordings:
-        file_data = requests.get(f"{config.MIRALIX_BASE_URL}/queues/calls/recordings/{recording["QueueCallId"]}", headers=headers).content
-        file_name = f"{destination}/{get_filename(recording)}"
-        with open(file_name, mode="wb") as file:
-            file.write(file_data)
-        files.append(file_name)
-    return files
+    headers = {
+        "X-Miralix-Shared-Secret": password
+    }
+    return requests.get(f'{config.MIRALIX_BASE_URL}/queues/calls/recordings/{call_id}', headers=headers, timeout=600).content
 
 
 def get_filename(recording) -> str:
@@ -103,22 +102,6 @@ def get_queue_id(queue_name: str, queues: object) -> str:
     return None
 
 
-def get_last_download_id() -> int:
-    """Get the ID of the latest call recording downloaded.
-
-    Returns:
-        A call ID as an int.
-    """
-    folder_path = config.DOWNLOAD_LOCATION
-    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    highest_id = 0
-    for file in files:
-        file_id = int(get_fileid_from_filename(file))
-        if highest_id < file_id:
-            highest_id = file_id
-    return highest_id
-
-
 def get_fileid_from_filename(filename: str) -> str:
     """Extract fileid from a filename.
 
@@ -135,4 +118,4 @@ if __name__ == "__main__":
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
     oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
-    download_from_queues(oc)
+    recordings_for_process(oc)

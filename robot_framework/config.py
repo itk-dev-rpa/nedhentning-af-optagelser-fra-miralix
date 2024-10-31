@@ -17,7 +17,6 @@ ERROR_EMAIL = "Error Email"
 # Miralix
 SSK = "Miralix Shared Key"
 MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
-DOWNLOAD_LOCATION = "downloads"
 
 # GetOrganized
 GO_API = "https://ad.go.aarhuskommune.dk"
