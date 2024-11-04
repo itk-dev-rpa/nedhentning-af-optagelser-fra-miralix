@@ -59,7 +59,7 @@ def delete_document(apiurl, session, document_id) -> tuple[str, Session]:
     Args:
         apiurl: Url of the GetOrganized API.
         session: Session object used for logging in.
-        document_id: ID of the document to delete.  
+        document_id: ID of the document to delete.
 
     Returns:
         Return the response and session objects
