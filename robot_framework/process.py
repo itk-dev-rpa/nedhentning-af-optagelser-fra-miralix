@@ -1,6 +1,7 @@
 """This module contains the main process of the robot."""
 
 import os
+import json
 
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection, QueueStatus
 
@@ -16,15 +17,16 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     get_organized_login = orchestrator_connection.get_credential(config.GO_CREDENTIALS)
     session = get_organized_api.create_session(config.GO_API, get_organized_login.username, get_organized_login.password)
     miralix_password = orchestrator_connection.get_credential(config.SSK).password
+    case_id = json.loads(orchestrator_connection.process_arguments)["case_number"]
 
     #  Check queue elements for highest call ID previously downloaded
     queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE)
     previous_file_names = []
     for queue_element in queue_elements:
         previous_file_names.append(queue_element.data)
-    last_download = miralix_api.get_highest_id(previous_file_names)
+    last_download = miralix_api.get_last_download_id(previous_file_names)
 
-    #  Download recordings that have a higher ID than the previous highest, and sort them
+    #  Get list of recordings that have a higher ID than the previous highest, and sort them
     recordings = miralix_api.recordings_for_process(orchestrator_connection, last_download)
     recordings.sort(key=lambda recording: recording["QueueCallId"])
 
@@ -40,7 +42,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
         #  Get file data and upload to GetOrganized as a list of bytes
         file_data = list(miralix_api.download_file(call_id, miralix_password))
-        get_organized_api.upload_document(config.GO_API, session, file_data, config.GO_CASE_ID, filename, recording["AgentName"])
+        get_organized_api.upload_document(config.GO_API, session, file_data, case_id, filename, recording["AgentName"])
 
         orchestrator_connection.set_queue_element_status(queue_element.id, QueueStatus.DONE)
 
@@ -48,5 +50,5 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 if __name__ == '__main__':
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
     process(oc)

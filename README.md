@@ -1,13 +1,17 @@
 # Download of recordings from Miralix
 This project is based on the [ITK Robot Framework](https://github.com/itk-dev-rpa/Robot-Framework), for use with [OpenOrchestrator](https://github.com/itk-dev-rpa/OpenOrchestrator) and Miralix.
-Using the Miralix API, we extract recordings from a set of phone queues, and download the files to a folder.
+
+Using the Miralix API, we extract recordings from a set of phone queues, and send these recordings to GetOrganized ESDH.
 
 ## Quick start
 
-1. Setup a trigger in OpenOrchestrator with this repository
-2. Add queues as parameters to the trigger
-3. Define the target folder for downloads as a parameter as well
-4. Define weather to download all recordings from queues, or only new recordings
+1. Setup a trigger and Miralix Shared Key in OpenOrchestrator.
+3. Setup a case in GetOrganized, making sure metadata is setup properly.
+2. Set Miralix queues and case number as parameters to the trigger: 
+```
+{"case_number": "EMN-2024-123456", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2")]}
+```
+4. Run the trigger.
 
 ## Requirements
 Minimum python version 3.10

@@ -21,15 +21,11 @@ MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
 # GetOrganized
 GO_API = "https://ad.go.aarhuskommune.dk"
 GO_CREDENTIALS = "GetOrganized Login"
-GO_CASE_ID = "EMN-2024-033020"
 
 # Queue specific configs
 # ----------------------
 
 # The name of the job queue (if any)
 QUEUE_NAME = "Miralix Nedhentning"
-
-# The limit on how many queue elements to process
-MAX_TASK_COUNT = 100
 
 # ----------------------

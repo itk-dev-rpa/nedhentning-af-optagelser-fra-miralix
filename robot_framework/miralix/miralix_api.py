@@ -1,20 +1,24 @@
 """API wrappers for interacting with Miralix"""
 
-import requests
 import json
 import os
 
+import requests
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
 
 from robot_framework import config
 
 
 def recordings_for_process(orchestrator_connection: OrchestratorConnection, from_queue_call_id: int = 0) -> list[str]:
-    """Download files from the queues specified in the process arguments.
+    """Get list of recordings from queues specified in process_arguments,
+    with an ID higher than the ID provided.
 
     Args:
         orchestrator_connection: Connection object to OpenOrchestrator.
         from_queue_call_id: Call ID to start download from. Defaults to 0.
+
+    Return:
+        List of recordings.
     """
     headers = {
         "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
@@ -100,6 +104,20 @@ def get_queue_id(queue_name: str, queues: object) -> str:
         if queue["Name"] == queue_name:
             return queue["Id"]
     return None
+
+
+def get_last_download_id(files: list[str]) -> int:
+    """Get the ID of the latest call recording downloaded.
+
+    Returns:
+        A call ID as an int.
+    """
+    highest_id = 0
+    for file in files:
+        file_id = int(get_fileid_from_filename(file))
+        if highest_id < file_id:
+            highest_id = file_id
+    return highest_id
 
 
 def get_fileid_from_filename(filename: str) -> str:
