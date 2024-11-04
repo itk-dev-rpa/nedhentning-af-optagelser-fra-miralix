@@ -115,8 +115,7 @@ def get_last_download_id(files: list[str]) -> int:
     highest_id = 0
     for file in files:
         file_id = int(get_fileid_from_filename(file))
-        if highest_id < file_id:
-            highest_id = file_id
+        highest_id = max(highest_id, file_id)
     return highest_id
 
 

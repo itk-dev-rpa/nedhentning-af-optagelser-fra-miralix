@@ -42,7 +42,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
         #  Get file data and upload to GetOrganized as a list of bytes
         file_data = list(miralix_api.download_file(call_id, miralix_password))
-        get_organized_api.upload_document(config.GO_API, session, file_data, case_id, filename, recording["AgentName"])
+        get_organized_api.upload_document(apiurl=config.GO_API, session=session, file=file_data, case=case_id, filename=filename, agent_name=recording["AgentName"])
 
         orchestrator_connection.set_queue_element_status(queue_element.id, QueueStatus.DONE)
 

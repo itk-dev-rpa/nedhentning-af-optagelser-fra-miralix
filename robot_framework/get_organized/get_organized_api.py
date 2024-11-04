@@ -24,7 +24,7 @@ def create_session(apiurl: str, username: str, password: str) -> Session:
     return session
 
 
-def upload_document(apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None):
+def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None):  # pylint: disable=R0917
     """Upload a document to Get Organized.
 
     Args:
