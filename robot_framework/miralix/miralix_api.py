@@ -52,7 +52,7 @@ def get_miralix_data(endpoint, headers, params=None, ) -> json:
     Returns:
         JSON formatted data.
     """
-    response = requests.get(f"{config.MIRALIX_BASE_URL}/{endpoint}", params=params, headers=headers, timeout=600)
+    response = requests.get(f"{config.MIRALIX_BASE_URL}/{endpoint}", params=params, headers=headers, timeout=config.MIRALIX_TIMEOUT)
     response.raise_for_status()  # Raise an error for bad status codes
     return response.json()
 
@@ -70,7 +70,7 @@ def download_file(call_id, password):
     headers = {
         "X-Miralix-Shared-Secret": password
     }
-    return requests.get(f'{config.MIRALIX_BASE_URL}/queues/calls/recordings/{call_id}', headers=headers, timeout=600).content
+    return requests.get(f'{config.MIRALIX_BASE_URL}/queues/calls/recordings/{call_id}', headers=headers, timeout=config.MIRALIX_TIMEOUT).content
 
 
 def get_filename(recording) -> str:
@@ -80,13 +80,14 @@ def get_filename(recording) -> str:
         recording: Recording object from json.
 
     Returns:
-        An mp3 filename in the format 'queue_time-started_agent_file-id.mp3'.
+        An mp3 filename in the format 'queue_time-started_agent_caller_file-id.mp3'.
     """
     queue = recording["QueueName"].replace(' ', '')[8:]
     time_started = recording["ConversationStartedUtc"][:19].replace(":", "-")
     agent = recording["AgentName"].replace(' ', '')
+    caller = recording["Caller"][4:]  # Only use last four digits for privacy reasons
     file_id = recording["QueueCallId"]
-    return f"{queue}_{time_started}_{agent}_{file_id}.mp3"
+    return f"{queue}_{time_started}_{agent}_{caller}_{file_id}.mp3"
 
 
 def get_queue_id(queue_name: str, queues: object) -> str:
@@ -106,33 +107,8 @@ def get_queue_id(queue_name: str, queues: object) -> str:
     return None
 
 
-def get_last_download_id(files: list[str]) -> int:
-    """Get the ID of the latest call recording downloaded.
-
-    Returns:
-        A call ID as an int.
-    """
-    highest_id = 0
-    for file in files:
-        file_id = int(get_fileid_from_filename(file))
-        highest_id = max(highest_id, file_id)
-    return highest_id
-
-
-def get_fileid_from_filename(filename: str) -> str:
-    """Extract fileid from a filename.
-
-    Args:
-        filename: A string filename in the format 'queue_time-started_agent_file-id.mp3'
-
-    Returns:
-        A fileid.
-    """
-    return filename.split("_")[-1].split(".")[0]
-
-
 if __name__ == "__main__":
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "894022config.MIRALIX_TIMEOUT BS - Vielseskontoret NPS"]}')
     recordings_for_process(oc)

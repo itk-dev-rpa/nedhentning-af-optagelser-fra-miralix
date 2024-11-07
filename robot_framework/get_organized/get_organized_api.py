@@ -4,6 +4,7 @@ import json
 
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
+from robot_framework import config
 
 
 def create_session(apiurl: str, username: str, password: str) -> Session:
@@ -20,11 +21,11 @@ def create_session(apiurl: str, username: str, password: str) -> Session:
     session = Session()
     session.headers.setdefault("Content-Type", "application/json")
     session.auth = HttpNtlmAuth(username, password)
-    session.post(apiurl, timeout=60)
+    session.post(apiurl, timeout=config.GO_TIMEOUT)
     return session
 
 
-def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None):  # pylint: disable=R0917
+def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None, date_string: str | None = None) -> tuple[str, Session]:
     """Upload a document to Get Organized.
 
     Args:
@@ -34,6 +35,7 @@ def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str
         case: Case name already present in GO.
         filename: Name of file when saved in GO.
         agent_name: Agent name, used for creating a folder in GO. Defaults to None.
+        date_string: A date to add as metadata to GetOrganized. Defaults to None.
 
     Returns:
         Return response text and session token.
@@ -46,10 +48,10 @@ def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str
         "ListName": "Dokumenter",
         "FolderPath": agent_name,
         "FileName": filename,
-        "Metadata": "<z:row xmlns:z='#RowsetSchema' ows_CustomProperty='Another prop value' />",
-        "Overwrite": False
+        "Metadata": f"<z:row xmlns:z='#RowsetSchema' ows_Dato='{date_string}'/>",
+        "Overwrite": True
     }
-    response = session.post(url, data=json.dumps(payload), timeout=600)
+    response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT0)
     return response.text, session
 
 
@@ -68,7 +70,7 @@ def delete_document(apiurl, session, document_id) -> tuple[str, Session]:
     payload = {
         "DocId": document_id
     }
-    response = session.delete(url, data=json.dumps(payload), timeout=600)
+    response = session.delete(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
     return response.text, session
 
 
@@ -90,7 +92,7 @@ def create_case(apiurl: str, session: str, title: str) -> tuple[str, Session]:
         'ReturnWhenCaseFullyCreated': False
         }
     # Send the POST request
-    response = session.post(url, data=json.dumps(payload), timeout=600)
+    response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
     # Return the response
     return response.text, session
 
@@ -108,7 +110,7 @@ def close_case(apiurl, session, case_number) -> tuple[str, Session]:
     """
     url = apiurl + "/_goapi/Cases/CloseCase"
     payload = {"CaseId": case_number}
-    response = session.post(url, data=payload, timeout=600)
+    response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
     return response.text, session
 
 
@@ -125,7 +127,7 @@ def journalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
     """
     url = apiurl + "/_goapi/Documents/Finalize/ByDocumentId"
     payload = {"DocID": doc_id}
-    response = session.post(url, data=payload, timeout=600)
+    response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
     return response.text, session
 
 
@@ -169,7 +171,7 @@ def log_to_getorganized(apiurl: str, session: Session, message: str) -> tuple[st
         "LogLevel": "1"
     }
     response = session.post(url, json.dumps(data))
-    return response.text, session
+    return response, session
 
 
 if __name__ == "__main__":

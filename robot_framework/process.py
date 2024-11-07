@@ -21,10 +21,9 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     #  Check queue elements for highest call ID previously downloaded
     queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE)
-    previous_file_names = []
+    highest_id = last_download = 0
     for queue_element in queue_elements:
-        previous_file_names.append(queue_element.data)
-    last_download = miralix_api.get_last_download_id(previous_file_names)
+        last_download = max(highest_id, int(queue_element.reference))
 
     #  Get list of recordings that have a higher ID than the previous highest, and sort them
     recordings = miralix_api.recordings_for_process(orchestrator_connection, last_download)
@@ -34,7 +33,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     for i, recording in enumerate(recordings):
         call_id = recording["QueueCallId"]
         filename = miralix_api.get_filename(recording)
-        print(f"{i+1}/{len(recordings)} - Call ID {call_id} being downloaded as {filename}")
+        print(f"{i+1}/{len(recordings)} - Call ID {call_id} being saved as {filename}")
 
         #  Set queue status
         queue_element = orchestrator_connection.create_queue_element(config.QUEUE_NAME, call_id, data=filename)
@@ -42,7 +41,13 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
         #  Get file data and upload to GetOrganized as a list of bytes
         file_data = list(miralix_api.download_file(call_id, miralix_password))
-        get_organized_api.upload_document(apiurl=config.GO_API, session=session, file=file_data, case=case_id, filename=filename, agent_name=recording["AgentName"])
+        get_organized_api.upload_document(apiurl=config.GO_API,
+                                          session=session,
+                                          file=file_data,
+                                          case=case_id,
+                                          filename=filename,
+                                          agent_name=recording["AgentName"],
+                                          date_string=recording["ConversationStartedUtc"])
 
         orchestrator_connection.set_queue_element_status(queue_element.id, QueueStatus.DONE)
 

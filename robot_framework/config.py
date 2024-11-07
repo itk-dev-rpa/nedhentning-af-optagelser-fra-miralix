@@ -17,10 +17,12 @@ ERROR_EMAIL = "Error Email"
 # Miralix
 SSK = "Miralix Shared Key"
 MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
+MIRALIX_TIMEOUT = 60
 
 # GetOrganized
 GO_API = "https://ad.go.aarhuskommune.dk"
 GO_CREDENTIALS = "GetOrganized Login"
+GO_TIMEOUT = 60
 
 # Queue specific configs
 # ----------------------
