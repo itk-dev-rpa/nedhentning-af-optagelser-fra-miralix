@@ -51,7 +51,7 @@ def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str
         "Metadata": f"<z:row xmlns:z='#RowsetSchema' ows_Dato='{date_string}'/>",
         "Overwrite": True
     }
-    response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT0)
+    response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
     return response.text, session
 
 

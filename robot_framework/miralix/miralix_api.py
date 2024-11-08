@@ -85,7 +85,7 @@ def get_filename(recording) -> str:
     queue = recording["QueueName"].replace(' ', '')[8:]
     time_started = recording["ConversationStartedUtc"][:19].replace(":", "-")
     agent = recording["AgentName"].replace(' ', '')
-    caller = recording["Caller"][4:]  # Only use last four digits for privacy reasons
+    caller = recording["Caller"][-4:]  # Only use last four digits for privacy reasons
     file_id = recording["QueueCallId"]
     return f"{queue}_{time_started}_{agent}_{caller}_{file_id}.mp3"
 
