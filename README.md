@@ -9,7 +9,7 @@ Using the Miralix API, we extract recordings from a set of phone queues, and sen
 3. Setup a case in GetOrganized, making sure metadata is setup properly.
 2. Set Miralix queues and case number as parameters to the trigger: 
 ```
-{"case_number": "EMN-2024-123456", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2")]}
+{"case_number": "EMN-2024-123456", "target_queues":["88888888 Telefonkø Navn","88888887 Telefonkø tast 2"]}
 ```
 4. Run the trigger.
 

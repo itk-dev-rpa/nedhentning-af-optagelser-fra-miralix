@@ -16,14 +16,12 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     get_organized_login = orchestrator_connection.get_credential(config.GO_CREDENTIALS)
     session = get_organized_api.create_session(config.GO_API, get_organized_login.username, get_organized_login.password)
-    miralix_password = orchestrator_connection.get_credential(config.SSK).password
-    case_id = json.loads(orchestrator_connection.process_arguments)["case_number"]
+    miralix_password = orchestrator_connection.get_credential(config.MIRALIX_SHARED_KEY).password
+    case_number = json.loads(orchestrator_connection.process_arguments)["case_number"]
 
     #  Check queue elements for highest call ID previously downloaded
     queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE)
-    highest_id = last_download = 0
-    for queue_element in queue_elements:
-        last_download = max(highest_id, int(queue_element.reference))
+    last_download = max(int(queue_element.reference) for queue_element in queue_elements)
 
     #  Get list of recordings that have a higher ID than the previous highest, and sort them
     recordings = miralix_api.recordings_for_process(orchestrator_connection, last_download)
@@ -44,7 +42,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
         get_organized_api.upload_document(apiurl=config.GO_API,
                                           session=session,
                                           file=file_data,
-                                          case=case_id,
+                                          case=case_number,
                                           filename=filename,
                                           agent_name=recording["AgentName"],
                                           date_string=recording["ConversationStartedUtc"])

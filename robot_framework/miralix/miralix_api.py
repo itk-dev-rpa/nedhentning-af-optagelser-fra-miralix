@@ -21,7 +21,7 @@ def recordings_for_process(orchestrator_connection: OrchestratorConnection, from
         List of recordings.
     """
     headers = {
-        "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.SSK).password
+        "X-Miralix-Shared-Secret": orchestrator_connection.get_credential(config.MIRALIX_SHARED_KEY).password
     }
 
     queue_names = json.loads(orchestrator_connection.process_arguments)["target_queues"]

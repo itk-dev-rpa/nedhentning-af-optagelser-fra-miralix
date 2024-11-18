@@ -15,7 +15,7 @@ SCREENSHOT_SENDER = "robot@friend.dk"
 ERROR_EMAIL = "Error Email"
 
 # Miralix
-SSK = "Miralix Shared Key"
+MIRALIX_SHARED_KEY = "Miralix Shared Key"
 MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
 MIRALIX_TIMEOUT = 60
 

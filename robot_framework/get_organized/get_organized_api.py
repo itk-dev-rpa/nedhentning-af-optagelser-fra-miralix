@@ -52,10 +52,11 @@ def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str
         "Overwrite": True
     }
     response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
+    response.raise_for_status()
     return response.text, session
 
 
-def delete_document(apiurl, session, document_id) -> tuple[str, Session]:
+def delete_document(apiurl, session: Session, document_id) -> tuple[str, Session]:
     """Delete a document from GetOrganized.
 
     Args:
@@ -71,6 +72,7 @@ def delete_document(apiurl, session, document_id) -> tuple[str, Session]:
         "DocId": document_id
     }
     response = session.delete(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
+    response.raise_for_status()
     return response.text, session
 
 
@@ -90,10 +92,9 @@ def create_case(apiurl: str, session: str, title: str) -> tuple[str, Session]:
         'CaseTypePrefix': 'EMN',
         'MetadataXml': f'<z:row xmlns:z="#RowsetSchema" ows_Title="{title}" ows_CaseStatus="Åben"/>',
         'ReturnWhenCaseFullyCreated': False
-        }
-    # Send the POST request
+    }
     response = session.post(url, data=json.dumps(payload), timeout=config.GO_TIMEOUT)
-    # Return the response
+    response.raise_for_status()
     return response.text, session
 
 
@@ -111,11 +112,12 @@ def close_case(apiurl, session, case_number) -> tuple[str, Session]:
     url = apiurl + "/_goapi/Cases/CloseCase"
     payload = {"CaseId": case_number}
     response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
+    response.raise_for_status()
     return response.text, session
 
 
-def journalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
-    """Journalize a document in GetOrganized.
+def finalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
+    """Finalize a document in GetOrganized.
 
     Args:
         apiurl: URL for GetOrganized API.
@@ -128,11 +130,12 @@ def journalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
     url = apiurl + "/_goapi/Documents/Finalize/ByDocumentId"
     payload = {"DocID": doc_id}
     response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
+    response.raise_for_status()
     return response.text, session
 
 
-def unjournalize_documents(apiurl, doc_ids, session) -> tuple[str, Session]:
-    """Unjournalize a document in GetOrganized.
+def unfinalize_documents(apiurl, doc_ids, session) -> tuple[str, Session]:
+    """Unfinalize a document in GetOrganized.
 
     Args:
         apiurl: URL for GetOrganized API.
@@ -148,6 +151,7 @@ def unjournalize_documents(apiurl, doc_ids, session) -> tuple[str, Session]:
         "OnlyUnfinalize": True
     }
     response = session.post(url, data=payload)
+    response.raise_for_status()
     return response.text, session
 
 
@@ -171,8 +175,5 @@ def log_to_getorganized(apiurl: str, session: Session, message: str) -> tuple[st
         "LogLevel": "1"
     }
     response = session.post(url, json.dumps(data))
+    response.raise_for_status()
     return response, session
-
-
-if __name__ == "__main__":
-    print("main")
