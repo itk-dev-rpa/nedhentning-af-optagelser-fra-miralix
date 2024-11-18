@@ -25,7 +25,7 @@ def create_session(apiurl: str, username: str, password: str) -> Session:
     return session
 
 
-def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str, filename: str, agent_name: str | None = None, date_string: str | None = None) -> tuple[str, Session]:
+def upload_document(*, apiurl: str, file: bytearray, case: str, filename: str, agent_name: str | None = None, date_string: str | None = None, session: Session) -> tuple[str, Session]:
     """Upload a document to Get Organized.
 
     Args:
@@ -56,7 +56,7 @@ def upload_document(*, apiurl: str, session: Session, file: bytearray, case: str
     return response.text, session
 
 
-def delete_document(apiurl, session: Session, document_id) -> tuple[str, Session]:
+def delete_document(apiurl: str, document_id: int, session: Session) -> tuple[str, Session]:
     """Delete a document from GetOrganized.
 
     Args:
@@ -76,7 +76,7 @@ def delete_document(apiurl, session: Session, document_id) -> tuple[str, Session
     return response.text, session
 
 
-def create_case(apiurl: str, session: str, title: str) -> tuple[str, Session]:
+def create_case(apiurl: str, title: str, session: Session) -> tuple[str, Session]:
     """Create a case in GetOrganized.
 
     Args:
@@ -98,7 +98,7 @@ def create_case(apiurl: str, session: str, title: str) -> tuple[str, Session]:
     return response.text, session
 
 
-def close_case(apiurl, session, case_number) -> tuple[str, Session]:
+def close_case(apiurl: str, case_number: int, session: Session) -> tuple[str, Session]:
     """Close a case in GetOrganized.
 
     Args:
@@ -116,7 +116,7 @@ def close_case(apiurl, session, case_number) -> tuple[str, Session]:
     return response.text, session
 
 
-def finalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
+def finalize_document(apiurl: str, doc_id: int, session: Session) -> tuple[str, Session]:
     """Finalize a document in GetOrganized.
 
     Args:
@@ -134,7 +134,7 @@ def finalize_document(apiurl, doc_id, session) -> tuple[str, Session]:
     return response.text, session
 
 
-def unfinalize_documents(apiurl, doc_ids, session) -> tuple[str, Session]:
+def unfinalize_documents(apiurl: str, doc_ids: list[int], session: Session) -> tuple[str, Session]:
     """Unfinalize a document in GetOrganized.
 
     Args:
@@ -155,7 +155,7 @@ def unfinalize_documents(apiurl, doc_ids, session) -> tuple[str, Session]:
     return response.text, session
 
 
-def log_to_getorganized(apiurl: str, session: Session, message: str) -> tuple[str, Session]:
+def log_to_getorganized(apiurl: str, message: str, session: Session) -> tuple[str, Session]:
     """Log a message to GetOrganized.
 
     Args:
