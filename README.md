@@ -4,7 +4,9 @@ This project is based on the [ITK Robot Framework](https://github.com/itk-dev-rp
 Using the Miralix API, we extract recordings from a set of phone queues, and send these recordings to GetOrganized ESDH.
 
 ## Quick start
+The robot requires a case setup in GetOrganized along with a list of Miralix queues to read from. The robot will dump all recordings found in the queues to the GetOrganized case.
 
+### Setup with Open Orchestrator
 1. Setup a trigger and Miralix Shared Key in OpenOrchestrator.
 3. Setup a case in GetOrganized, making sure metadata is setup properly.
 2. Set Miralix queues and case number as parameters to the trigger: 
