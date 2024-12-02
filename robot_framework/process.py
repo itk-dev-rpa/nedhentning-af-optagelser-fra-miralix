@@ -15,7 +15,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     orchestrator_connection.log_trace("Running process.")
 
     get_organized_login = orchestrator_connection.get_credential(config.GO_CREDENTIALS)
-    session = get_organized_api.create_session(config.GO_API, get_organized_login.username, get_organized_login.password)
+    session = get_organized_api.create_session(get_organized_login.username, get_organized_login.password)
     miralix_password = orchestrator_connection.get_credential(config.MIRALIX_SHARED_KEY).password
     case_number = json.loads(orchestrator_connection.process_arguments)["case_number"]
 

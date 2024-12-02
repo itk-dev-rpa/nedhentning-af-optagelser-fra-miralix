@@ -8,7 +8,7 @@ from requests_ntlm import HttpNtlmAuth
 from robot_framework import config
 
 
-def create_session(apiurl: str, username: str, password: str) -> Session:
+def create_session(username: str, password: str) -> Session:
     """Create a session for accessing GetOrganized API.
 
     Args:
