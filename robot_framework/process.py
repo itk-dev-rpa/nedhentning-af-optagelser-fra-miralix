@@ -31,7 +31,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     for i, recording in enumerate(recordings):
         call_id = recording["QueueCallId"]
         filename = miralix_api.get_filename(recording)
-        print(f"{i+1}/{len(recordings)} - Call ID {call_id} being saved as {filename}")
+        orchestrator_connection.log_info(f"{i+1}/{len(recordings)} - Call ID {call_id} being saved as {filename}")
 
         #  Set queue status
         queue_element = orchestrator_connection.create_queue_element(config.QUEUE_NAME, call_id, data=filename)

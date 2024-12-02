@@ -1,6 +1,7 @@
 """Functions for accessing the Miralix API."""
 
 import json
+from urllib.parse import urljoin
 
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
@@ -21,7 +22,6 @@ def create_session(apiurl: str, username: str, password: str) -> Session:
     session = Session()
     session.headers.setdefault("Content-Type", "application/json")
     session.auth = HttpNtlmAuth(username, password)
-    session.post(apiurl, timeout=config.GO_TIMEOUT)
     return session
 
 
@@ -44,7 +44,7 @@ def upload_document(*, apiurl: str, file: bytearray, case: str, filename: str, a
     payload = {
         "Bytes": file,
         "CaseId": case,
-        "SiteUrl": f"{apiurl}/cases/EMN/{case}",
+        "SiteUrl": urljoin(apiurl, f"/cases/EMN/{case}"),
         "ListName": "Dokumenter",
         "FolderPath": agent_name,
         "FileName": filename,
@@ -67,7 +67,7 @@ def delete_document(apiurl: str, document_id: int, session: Session) -> tuple[st
     Returns:
         Return the response and session objects
     """
-    url = apiurl + "/_goapi/Documents/ByDocumentId"
+    url = urljoin(apiurl, "/_goapi/Documents/ByDocumentId")
     payload = {
         "DocId": document_id
     }
@@ -87,7 +87,7 @@ def create_case(apiurl: str, title: str, session: Session) -> tuple[str, Session
     Returns:
         Return the response and session objects.
     """
-    url = apiurl + "/_goapi/Cases/"
+    url = urljoin(apiurl, "/_goapi/Cases/")
     payload = {
         'CaseTypePrefix': 'EMN',
         'MetadataXml': f'<z:row xmlns:z="#RowsetSchema" ows_Title="{title}" ows_CaseStatus="Åben"/>',
@@ -109,7 +109,7 @@ def close_case(apiurl: str, case_number: int, session: Session) -> tuple[str, Se
     Returns:
         Return the response and session objects.
     """
-    url = apiurl + "/_goapi/Cases/CloseCase"
+    url = urljoin(apiurl, "/_goapi/Cases/CloseCase")
     payload = {"CaseId": case_number}
     response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
     response.raise_for_status()
@@ -127,7 +127,7 @@ def finalize_document(apiurl: str, doc_id: int, session: Session) -> tuple[str, 
     Returns:
         Response text and updated session token.
     """
-    url = apiurl + "/_goapi/Documents/Finalize/ByDocumentId"
+    url = urljoin(apiurl, "/_goapi/Documents/Finalize/ByDocumentId")
     payload = {"DocID": doc_id}
     response = session.post(url, data=payload, timeout=config.GO_TIMEOUT)
     response.raise_for_status()
@@ -145,7 +145,7 @@ def unfinalize_documents(apiurl: str, doc_ids: list[int], session: Session) -> t
     Returns:
         Response text and updated session token.
     """
-    url = apiurl + "/_goapi/Documents/UnmarkFinalizedByDocumentId"
+    url = urljoin(apiurl, "/_goapi/Documents/UnmarkFinalizedByDocumentId")
     payload = {
         "DocIDs": doc_ids,
         "OnlyUnfinalize": True
@@ -166,7 +166,7 @@ def log_to_getorganized(apiurl: str, message: str, session: Session) -> tuple[st
     Returns:
         Response text and updated session token.
     """
-    url = apiurl + "/_goapi/administration/Log"
+    url = urljoin(apiurl, "/_goapi/administration/Log")
     data = {
         "FullClassName": "GO API CLASS NAME FULL",
         "FunctionName": "LogFromGoApi",
