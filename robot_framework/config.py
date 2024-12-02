@@ -14,14 +14,20 @@ SCREENSHOT_SENDER = "robot@friend.dk"
 # Constant/Credential names
 ERROR_EMAIL = "Error Email"
 
+# Miralix
+MIRALIX_SHARED_KEY = "Miralix Shared Key"
+MIRALIX_BASE_URL = "https://webrequest-aarhus.miralix.online/mot/12986"
+MIRALIX_TIMEOUT = 60
+
+# GetOrganized
+GO_API = "https://ad.go.aarhuskommune.dk"
+GO_CREDENTIALS = "GetOrganized Login"
+GO_TIMEOUT = 60
 
 # Queue specific configs
 # ----------------------
 
 # The name of the job queue (if any)
-QUEUE_NAME = None
-
-# The limit on how many queue elements to process
-MAX_TASK_COUNT = 100
+QUEUE_NAME = "Miralix Nedhentning"
 
 # ----------------------
