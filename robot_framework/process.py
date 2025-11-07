@@ -21,7 +21,9 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     #  Check queue elements for highest call ID previously downloaded
     queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE)
-    last_download = max(int(queue_element.reference) for queue_element in queue_elements)
+    last_download = 0
+    if len(queue_elements) > 0:
+        last_download = max(int(queue_element.reference) for queue_element in queue_elements)
 
     #  Get list of recordings that have a higher ID than the previous highest, and sort them
     recordings = miralix_api.recordings_for_process(orchestrator_connection, last_download)
@@ -53,5 +55,5 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 if __name__ == '__main__':
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}')
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}', "TestTrigger")
     process(oc)
