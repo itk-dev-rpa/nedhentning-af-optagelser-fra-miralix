@@ -21,6 +21,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     case_number = json.loads(orchestrator_connection.process_arguments)["case_number"]
 
     #  Check queue elements for highest call ID previously downloaded
+
     queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE, from_date=datetime.now()-timedelta(days=20))
     last_download = 0
     if len(queue_elements) > 0:
