@@ -2,6 +2,7 @@
 
 import os
 import json
+from datetime import datetime, timedelta
 
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection, QueueStatus
 
@@ -20,7 +21,8 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     case_number = json.loads(orchestrator_connection.process_arguments)["case_number"]
 
     #  Check queue elements for highest call ID previously downloaded
-    queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE)
+
+    queue_elements = orchestrator_connection.get_queue_elements(config.QUEUE_NAME, status=QueueStatus.DONE, from_date=datetime.now()-timedelta(days=20))
     last_download = 0
     if len(queue_elements) > 0:
         last_download = max(int(queue_element.reference) for queue_element in queue_elements)
@@ -55,5 +57,5 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 if __name__ == '__main__':
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}', "TestTrigger")
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}', "")
     process(oc)
