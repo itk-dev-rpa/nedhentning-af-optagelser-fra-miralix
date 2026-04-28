@@ -105,10 +105,3 @@ def get_queue_id(queue_name: str, queues: object) -> str:
         if queue["Name"] == queue_name:
             return queue["Id"]
     return None
-
-
-if __name__ == "__main__":
-    conn_string = os.getenv("OpenOrchestratorConnString")
-    crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "894022config.MIRALIX_TIMEOUT BS - Vielseskontoret NPS"]}', "trigger", "")
-    recordings_for_process(oc)
