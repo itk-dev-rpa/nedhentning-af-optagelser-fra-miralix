@@ -57,5 +57,5 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 if __name__ == '__main__':
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}', "")
+    oc = OrchestratorConnection("Miralix Nedhentning", conn_string, crypto_key, '{"case_number": "EMN-2024-033020", "target_queues":["89403330 Opkrævningen P-Gap","89403330 Opkrævningen P-Gap Boliglån tast 2", "89404130 BS - Kørekort P-GAP", "89402000 Aarhus Kommunes Hovednummer NPS", "89402088 Janni testnummer NPS", "89402260 BS - Vielseskontoret NPS"]}', "", "")
     process(oc)
