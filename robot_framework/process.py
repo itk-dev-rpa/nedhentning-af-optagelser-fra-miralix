@@ -1,6 +1,5 @@
 """This module contains the main process of the robot."""
 
-import os
 import json
 from datetime import datetime, timedelta
 
