@@ -1,7 +1,6 @@
 """API wrappers for interacting with Miralix"""
 
 import json
-import os
 
 import requests
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
